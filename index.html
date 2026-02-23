@@ -3,70 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube 1000 Views - GitHub Live</title>
+    <title>Multi-Viewer | Developed by Ashutosh Puri</title>
     <style>
-        body { background: #050505; color: #eee; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; text-align: center; }
-        .header { position: sticky; top: 0; background: #111; padding: 15px; border-bottom: 2px solid #ff0000; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.8); }
-        .stats { font-size: 20px; font-weight: bold; color: #00ff00; margin-bottom: 10px; }
-        #view-area { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; padding: 20px; }
-        iframe { width: 100%; height: 110px; border: 1px solid #333; border-radius: 4px; background: #000; }
-        button { padding: 12px 35px; background: #f00; color: #fff; border: none; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background: #b00; transform: scale(1.05); }
-        .info { font-size: 12px; color: #666; margin-top: 10px; }
+        :root { --primary: #ff0000; --bg: #0d0d0d; --card: #161616; --accent: #00ff00; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        
+        /* Branding Section */
+        .branding {
+            background: linear-gradient(90deg, #111, #222);
+            padding: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #333;
+            color: #bbb;
+        }
+        .branding b { color: #fff; }
+        .branding a { color: var(--accent); text-decoration: none; font-weight: bold; }
+
+        .header { 
+            position: sticky; top: 0; background: var(--card); padding: 20px; 
+            border-bottom: 3px solid var(--primary); z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        }
+
+        .controls {
+            display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: flex-end;
+            max-width: 1200px; margin: 0 auto;
+        }
+
+        .field { display: flex; flex-direction: column; text-align: left; }
+        label { font-size: 11px; font-weight: bold; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        
+        input { 
+            padding: 10px; border-radius: 5px; border: 1px solid #333; 
+            background: #222; color: #fff; width: 200px; outline: none;
+        }
+
+        button { 
+            padding: 10px 25px; background: var(--primary); color: #fff; 
+            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #cc0000; box-shadow: 0 0 15px rgba(255,0,0,0.4); }
+
+        #status-msg { margin-top: 15px; font-size: 14px; color: var(--accent); font-family: monospace; }
+
+        #view-area { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 12px; padding: 20px; 
+        }
+
+        iframe { width: 100%; height: 130px; border: 1px solid #222; border-radius: 8px; background: #000; }
     </style>
 </head>
 <body>
 
+    <div class="branding">
+        Website Design & Develop by <b>Ashutosh Puri</b> | 
+        More info Contact Developer: <a href="tel:7052464750">7052464750</a>
+    </div>
+
     <div class="header">
-        <div id="status" class="stats">Ready to Start</div>
-        <button id="startBtn" onclick="ignite()">START 1000 VIEWS</button>
-        <div class="info">Video: gZ9QQhCDF3c | Refresh: Every 3 Mins | Muted Autoplay</div>
+        <div class="controls">
+            <div class="field">
+                <label>YouTube Video URL</label>
+                <input type="text" id="videoUrl" placeholder="Paste link here...">
+            </div>
+            <div class="field">
+                <label>Tabs (Max 1000)</label>
+                <input type="number" id="tabCount" value="10" max="1000">
+            </div>
+            <div class="field">
+                <label>Refresh (Minutes)</label>
+                <input type="number" id="refreshMins" value="3" step="0.1">
+            </div>
+            <button onclick="launch()">BOOST SYSTEM</button>
+        </div>
+        <div id="status-msg">System Ready for Ashutosh Puri's Client</div>
     </div>
 
     <div id="view-area"></div>
 
     <script>
-        // AAPKA VIDEO ID
-        const vID = "gZ9QQhCDF3c";
-        const total = 1000;
-        const refreshTime = 180000; // 3 Minutes
-        let current = 0;
+        let timer;
 
-        function ignite() {
-            document.getElementById('startBtn').style.display = 'none';
-            const container = document.getElementById('view-area');
-            
-            // YouTube No-Cookie URL (Privacy Mode)
-            const embedPath = `https://www.youtube-nocookie.com/embed/${vID}?autoplay=1&mute=1&loop=1&playlist=${vID}&rel=0&enablejsapi=1`;
-
-            // Slow Batching: Taaki browser ya net freeze na ho
-            let engine = setInterval(() => {
-                for(let i = 0; i < 4; i++) { // Ek baar mein 4 frames
-                    if(current < total) {
-                        let f = document.createElement("iframe");
-                        f.src = embedPath;
-                        f.setAttribute("allow", "autoplay; encrypted-media");
-                        f.setAttribute("frameborder", "0");
-                        container.appendChild(f);
-                        current++;
-                        document.getElementById('status').innerText = `Active Engines: ${current} / ${total}`;
-                    } else {
-                        clearInterval(engine);
-                        setupRefresh(embedPath);
-                    }
-                }
-            }, 400); // 0.4 second ka gap batches ke beech mein
+        function getID(url) {
+            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            let match = url.match(regExp);
+            return (match && match[2].length == 11) ? match[2] : null;
         }
 
-        function setupRefresh(url) {
-            setInterval(() => {
-                const allFrames = document.querySelectorAll('iframe');
-                allFrames.forEach(frame => {
-                    // Random param to force reload
+        function launch() {
+            clearInterval(timer);
+            const area = document.getElementById('view-area');
+            area.innerHTML = '';
+
+            const link = document.getElementById('videoUrl').value;
+            const tabs = Math.min(parseInt(document.getElementById('tabCount').value), 1000);
+            const mins = parseFloat(document.getElementById('refreshMins').value);
+            const vidId = getID(link);
+
+            if (!vidId) { alert("Sahi YouTube link daalo!"); return; }
+
+            const finalUrl = `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&mute=1&loop=1&playlist=${vidId}`;
+            let count = 0;
+
+            document.getElementById('status-msg').innerText = "System Ignited... Loading Frames";
+
+            let batch = setInterval(() => {
+                for(let i = 0; i < 5; i++) {
+                    if(count < tabs) {
+                        let f = document.createElement("iframe");
+                        f.src = finalUrl;
+                        f.setAttribute("allow", "autoplay; encrypted-media");
+                        area.appendChild(f);
+                        count++;
+                        document.getElementById('status-msg').innerText = `Ashutosh's Booster: ${count} / ${tabs} Active`;
+                    } else {
+                        clearInterval(batch);
+                        startCycle(finalUrl, mins);
+                    }
+                }
+            }, 300);
+        }
+
+        function startCycle(url, m) {
+            timer = setInterval(() => {
+                const all = document.querySelectorAll('iframe');
+                all.forEach(frame => {
                     frame.src = url + "&t=" + Math.random();
                 });
-                console.log("Auto-Refresh triggered for 1000 frames.");
-            }, refreshTime);
+                console.log("Auto-Refresh by Ashutosh Puri's Script");
+            }, m * 60000);
         }
     </script>
 </body>
