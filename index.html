@@ -2,138 +2,82 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Viewer | Developed by Ashutosh Puri</title>
+    <title>Premium Multi-Viewer | Ashutosh Puri</title>
     <style>
-        :root { --primary: #ff0000; --bg: #0d0d0d; --card: #161616; --accent: #00ff00; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        :root { --primary: #ff0000; --bg: #0d0d0d; --card: #161616; --gold: #ffd700; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; margin: 0; text-align: center; }
         
-        /* Branding Section */
-        .branding {
-            background: linear-gradient(90deg, #111, #222);
-            padding: 10px;
-            font-size: 14px;
-            border-bottom: 1px solid #333;
-            color: #bbb;
-        }
-        .branding b { color: #fff; }
-        .branding a { color: var(--accent); text-decoration: none; font-weight: bold; }
-
-        .header { 
-            position: sticky; top: 0; background: var(--card); padding: 20px; 
-            border-bottom: 3px solid var(--primary); z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
-        }
-
-        .controls {
-            display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; align-items: flex-end;
-            max-width: 1200px; margin: 0 auto;
-        }
-
-        .field { display: flex; flex-direction: column; text-align: left; }
-        label { font-size: 11px; font-weight: bold; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .header { background: var(--card); padding: 20px; border-bottom: 3px solid var(--primary); }
+        .branding { font-size: 14px; color: #aaa; margin-bottom: 10px; }
         
-        input { 
-            padding: 10px; border-radius: 5px; border: 1px solid #333; 
-            background: #222; color: #fff; width: 200px; outline: none;
+        /* Payment Box */
+        .pay-box { 
+            background: #222; border: 1px solid var(--gold); padding: 15px; 
+            margin: 20px auto; max-width: 400px; border-radius: 10px; 
         }
-
-        button { 
-            padding: 10px 25px; background: var(--primary); color: #fff; 
-            border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover { background: #cc0000; box-shadow: 0 0 15px rgba(255,0,0,0.4); }
-
-        #status-msg { margin-top: 15px; font-size: 14px; color: var(--accent); font-family: monospace; }
-
-        #view-area { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 12px; padding: 20px; 
-        }
-
-        iframe { width: 100%; height: 130px; border: 1px solid #222; border-radius: 8px; background: #000; }
+        .locked { filter: blur(5px); pointer-events: none; opacity: 0.5; }
+        
+        input, button { padding: 12px; margin: 5px; border-radius: 5px; border: none; }
+        input { background: #333; color: #fff; width: 250px; }
+        .btn-pay { background: var(--gold); color: #000; font-weight: bold; cursor: pointer; }
+        .btn-boost { background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; width: 200px; }
     </style>
 </head>
 <body>
 
     <div class="branding">
-        Website Design & Develop by <b>Ashutosh Puri</b> | 
-        More info Contact Developer: <a href="tel:7052464750">7052464750</a>
+        Website Design & Develop by <b>Ashutosh Puri</b><br>
+        Support: 7052464750
     </div>
 
-    <div class="header">
-        <div class="controls">
-            <div class="field">
-                <label>YouTube Video URL</label>
-                <input type="text" id="videoUrl" placeholder="Paste link here...">
-            </div>
-            <div class="field">
-                <label>Tabs (Max 1000)</label>
-                <input type="number" id="tabCount" value="10" max="1000">
-            </div>
-            <div class="field">
-                <label>Refresh (Minutes)</label>
-                <input type="number" id="refreshMins" value="3" step="0.1">
-            </div>
-            <button onclick="launch()">BOOST SYSTEM</button>
+    <!-- Payment Verification Section -->
+    <div class="pay-box" id="paySection">
+        <h3 style="color:var(--gold)">🔐 PREMIUM ACCESS REQUIRED</h3>
+        <p style="font-size:12px">Step 1: Subscribe my Channel<br>Step 2: Pay ₹10 to UPI: <b>7052464750@ybl</b><br>Step 3: Enter Secret Key (Get it from Developer)</p>
+        <a href="https://youtube.com/@YOUR_CHANNEL_LINK" target="_blank">
+            <button class="btn-pay" style="background:#ff0000; color:#fff;">SUBSCRIBE CHANNEL</button>
+        </a>
+        <br><br>
+        <input type="password" id="secretKey" placeholder="Enter Access Key here...">
+        <button class="btn-pay" onclick="unlock()">VERIFY & UNLOCK</button>
+    </div>
+
+    <!-- Main Tool (Initially Locked) -->
+    <div id="mainTool" class="locked">
+        <div class="header">
+            <input type="text" id="videoUrl" placeholder="Paste YouTube Link here...">
+            <input type="number" id="tabCount" value="10" title="Tabs">
+            <input type="number" id="refreshMins" value="3" title="Minutes">
+            <br>
+            <button class="btn-boost" onclick="launch()">START BOOSTING</button>
         </div>
-        <div id="status-msg">System Ready for Ashutosh Puri's Client</div>
+        <div id="view-area" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; padding:20px;"></div>
     </div>
-
-    <div id="view-area"></div>
 
     <script>
-        let timer;
+        // AAPKA SECRET KEY (Isko badal dena)
+        const MY_SECRET_KEY = "ASHU7052"; 
 
-        function getID(url) {
-            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            let match = url.match(regExp);
-            return (match && match[2].length == 11) ? match[2] : null;
+        function unlock() {
+            const userKey = document.getElementById('secretKey').value;
+            if(userKey === MY_SECRET_KEY) {
+                document.getElementById('mainTool').classList.remove('locked');
+                document.getElementById('paySection').style.display = 'none';
+                alert("Success! Tool Unlocked by Ashutosh Puri.");
+            } else {
+                alert("Invalid Key! Pehle ₹10 pay karein aur Ashutosh se key lein.");
+            }
         }
 
         function launch() {
-            clearInterval(timer);
+            const vid = document.getElementById('videoUrl').value;
+            const tabs = document.getElementById('tabCount').value;
             const area = document.getElementById('view-area');
             area.innerHTML = '';
-
-            const link = document.getElementById('videoUrl').value;
-            const tabs = Math.min(parseInt(document.getElementById('tabCount').value), 1000);
-            const mins = parseFloat(document.getElementById('refreshMins').value);
-            const vidId = getID(link);
-
-            if (!vidId) { alert("Sahi YouTube link daalo!"); return; }
-
-            const finalUrl = `https://www.youtube-nocookie.com/embed/${vidId}?autoplay=1&mute=1&loop=1&playlist=${vidId}`;
-            let count = 0;
-
-            document.getElementById('status-msg').innerText = "System Ignited... Loading Frames";
-
-            let batch = setInterval(() => {
-                for(let i = 0; i < 5; i++) {
-                    if(count < tabs) {
-                        let f = document.createElement("iframe");
-                        f.src = finalUrl;
-                        f.setAttribute("allow", "autoplay; encrypted-media");
-                        area.appendChild(f);
-                        count++;
-                        document.getElementById('status-msg').innerText = `Ashutosh's Booster: ${count} / ${tabs} Active`;
-                    } else {
-                        clearInterval(batch);
-                        startCycle(finalUrl, mins);
-                    }
-                }
-            }, 300);
-        }
-
-        function startCycle(url, m) {
-            timer = setInterval(() => {
-                const all = document.querySelectorAll('iframe');
-                all.forEach(frame => {
-                    frame.src = url + "&t=" + Math.random();
-                });
-                console.log("Auto-Refresh by Ashutosh Puri's Script");
-            }, m * 60000);
+            
+            // YouTube ID extract logic and iframe loading...
+            // (Pura purana logic yahan aayega)
+            alert("System Starting for " + tabs + " views...");
         }
     </script>
 </body>
